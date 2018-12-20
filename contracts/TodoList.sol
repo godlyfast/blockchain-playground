@@ -9,7 +9,7 @@ contract TodoList {
   event added(string text);
   event removed(uint id);
 
-  function addTodo(string text) public {
+  function addTodo(string memory text) public {
     todos.push(Todo(text, false));
     emit added(text);
   }
