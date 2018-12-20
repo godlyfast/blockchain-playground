@@ -47,11 +47,10 @@ class App extends Component {
 
       TodolistContractInstance.added().on('data', async e => {
         const newLen = await TodolistContractInstance.numTodos()
-        this.setState({todos: [...this.state.todos, {...e.returnValues, id: newLen}]})
+        this.setState({todos: [...this.state.todos, {text: e.returnValues.text, id: newLen.toNumber()-1}]})
       })
 
       TodolistContractInstance.removed().on('data', async e => {
-        console.log(e.returnValues.id);
         this.setState({todos: this.state.todos.filter(todo => todo.id !== e.returnValues.id*1)})
       })
 
@@ -85,6 +84,7 @@ class App extends Component {
 
   removeTodo = async (id) => {
     const {todoContract, accounts, web3} = this.state;
+    console.log('RM TODO', id);
     await todoContract.removeTodo(web3.utils.numberToHex(id), {from: accounts[0]})
   }
 
@@ -99,7 +99,7 @@ class App extends Component {
         <h2>Smart Contract Example</h2>
         <p>
           If your contracts compiled and migrated successfully, below will show
-          a stored value of 5 (by default).
+          a stored value.
         </p>
 
         <div>The stored value is: {this.state.storageValue}</div>
@@ -111,7 +111,7 @@ class App extends Component {
           this.state.todos.map(
             (todo, i) => (
               <div key={i}>
-                {todo.text}
+                {todo.text} | {todo.id}
                 <button onClick={() => this.removeTodo(todo.id)}>x</button>
               </div>
             )
