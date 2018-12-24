@@ -1,10 +1,11 @@
 import React, { Component } from "react";
 import SimpleStorageContract from "./contracts/SimpleStorage.json";
-import TodolistContract from './contracts/TodoList.json';
 import getWeb3 from "./utils/getWeb3";
 import truffleContract from "truffle-contract";
 
 import "./App.css";
+
+import TodoList from './components/TodoList'
 
 class App extends Component {
   state = { storageValue: 0, web3: null, accounts: null, contract: null, val: 0, todos: [], todoContract: null, newTodo: null };
@@ -17,7 +18,6 @@ class App extends Component {
       // Use web3 to get the user's accounts.
       const accounts = await web3.eth.getAccounts();
 
-      console.log(accounts);
 
       // Get the contract instance.
       const Contract = truffleContract(SimpleStorageContract);
@@ -26,37 +26,13 @@ class App extends Component {
       // Get the value from the contract to prove it worked.
       const response = await instance.get();
 
-      const TodolistContract_ = truffleContract(TodolistContract);
-      TodolistContract_.setProvider(web3.currentProvider);
-      const TodolistContractInstance = await TodolistContract_.deployed();
-
-      // await TodolistContractInstance.addTodo("test", {from: accounts[0]});
-
-      const todosCount = await TodolistContractInstance.numTodos();
-
-
-      for (let i=0; i< todosCount; i++) {
-        const todo = await TodolistContractInstance.todos(i);
-        console.log(todo, i);
-        if (!todo.removed) this.setState({todos: [...this.state.todos, {...todo, id: i}]})
-      }
-
       instance.DataWillChange().on('data', e => {
         this.setState({storageValue: e.returnValues.newData})
       })
 
-      TodolistContractInstance.added().on('data', async e => {
-        const newLen = await TodolistContractInstance.numTodos()
-        this.setState({todos: [...this.state.todos, {text: e.returnValues.text, id: newLen.toNumber()-1}]})
-      })
-
-      TodolistContractInstance.removed().on('data', async e => {
-        this.setState({todos: this.state.todos.filter(todo => todo.id !== e.returnValues.id*1)})
-      })
-
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance, storageValue: response.toNumber() , todoContract: TodolistContractInstance});
+      this.setState({ web3, accounts, contract: instance, storageValue: response.toNumber()});
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -73,23 +49,9 @@ class App extends Component {
     await contract.set(val, { from: accounts[0] });
   };
 
-  updateE = async (event) => {
-    this.setState({val:event.target.value})
-  }
-
-  addTodo = async () => {
-    const {todoContract, accounts} = this.state;
-    await todoContract.addTodo(this.state.newTodo, {from: accounts[0]})
-  }
-
-  removeTodo = async (id) => {
-    const {todoContract, accounts, web3} = this.state;
-    console.log('RM TODO', id);
-    await todoContract.removeTodo(web3.utils.numberToHex(id), {from: accounts[0]})
-  }
-
   render() {
-    if (!this.state.web3) {
+    const {web3, accounts} = this.state;
+    if (!web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
     }
     return (
@@ -104,21 +66,12 @@ class App extends Component {
 
         <div>The stored value is: {this.state.storageValue}</div>
 
-        <input onChange={this.updateE} type="text"/> <button onClick={this.setVal}>SAVE</button>
+        <input onChange={(event) => {
+          this.setState({val:event.target.value})
+        }} type="text"/> <button onClick={this.setVal}>SAVE</button>
 
-        <h2>TODOS!!!</h2>
-        {
-          this.state.todos.map(
-            (todo, i) => (
-              <div key={i}>
-                {todo.text} | {todo.id}
-                <button onClick={() => this.removeTodo(todo.id)}>x</button>
-              </div>
-            )
-          )
-        }
-        <input onChange={(e) => this.setState({newTodo: e.target.value})}/>
-        <button onClick={this.addTodo}>ADD</button>
+      <TodoList web3={web3} accounts={accounts}/>
+
       </div>
     );
   }
