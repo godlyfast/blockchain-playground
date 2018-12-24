@@ -42,6 +42,7 @@ export default class SimpleStorage extends Component {
   render() {
     return (
       <div>
+        <h3>SIMPLE INT STORAGE</h3>
         <div>The stored value is: {this.state.storageValue}</div>
         <input
           onChange={event => {

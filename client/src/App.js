@@ -43,12 +43,8 @@ class App extends Component {
     return (
       <div className="App">
         <h1>Good to Go!</h1>
-        <p>Your Truffle Box is installed and ready.</p>
-        <h2>Smart Contract Example</h2>
-        <p>
-          If your contracts compiled and migrated successfully, below will show
-          a stored value.
-        </p>
+        <h2>Smart Contract Examples</h2>
+
         <SimpleStorage web3={web3} accounts={accounts} />
         <TodoList web3={web3} accounts={accounts} />
       </div>
