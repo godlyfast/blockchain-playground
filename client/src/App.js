@@ -50,7 +50,8 @@ class App extends Component {
   };
 
   render() {
-    if (!this.state.web3) {
+    const {web3, accounts} = this.state;
+    if (!web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
     }
     return (
@@ -69,7 +70,7 @@ class App extends Component {
           this.setState({val:event.target.value})
         }} type="text"/> <button onClick={this.setVal}>SAVE</button>
 
-        <TodoList/>
+      <TodoList web3={web3} accounts={accounts}/>
 
       </div>
     );

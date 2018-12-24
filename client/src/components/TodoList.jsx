@@ -1,25 +1,23 @@
 import React, { Component } from 'react';
-import getWeb3 from "../utils/getWeb3";
 import TodolistContract from '../contracts/TodoList.json'
 import truffleContract from "truffle-contract";
 
 export class TodoList extends Component {
   state = { web3: null, accounts: null, todos: [], todoContract: null, newTodo: null };
 
-  async componentDidMount(){
+  componentDidMount = async () => {
 
     // Get network provider and web3 instance.
-    const web3 = await getWeb3();
+    const {web3, accounts} = this.props
 
-    // Use web3 to get the user's accounts.
-    const accounts = await web3.eth.getAccounts();
 
     const TodolistContract_ = truffleContract(TodolistContract);
     TodolistContract_.setProvider(web3.currentProvider);
     const TodolistContractInstance = await TodolistContract_.deployed();
 
-    const todosCount = await TodolistContractInstance.numTodos();
+    this.setState({ web3, accounts, todoContract: TodolistContractInstance});
 
+    const todosCount = await TodolistContractInstance.numTodos();
 
     for (let i=0; i< todosCount; i++) {
       const todo = await TodolistContractInstance.todos(i);
@@ -35,9 +33,6 @@ export class TodoList extends Component {
     TodolistContractInstance.removed().on('data', async e => {
       this.setState({todos: this.state.todos.filter(todo => todo.id !== e.returnValues.id*1)})
     })
-
-    this.setState({ web3, accounts, todoContract: TodolistContractInstance});
-
   }
 
   addTodo = async () => {
@@ -50,8 +45,8 @@ export class TodoList extends Component {
     console.log('RM TODO', id);
     await todoContract.removeTodo(web3.utils.numberToHex(id), {from: accounts[0]})
   }
-  render() {
 
+  render() {
     return (
       <div>
       <h2>TODOS!!!</h2>
