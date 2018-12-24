@@ -19,16 +19,7 @@ export class TodoList extends Component {
     TodolistContract_.setProvider(web3.currentProvider);
     const TodolistContractInstance = await TodolistContract_.deployed();
 
-    this.setState({ web3, accounts, todoContract: TodolistContractInstance });
-
-    const todosCount = await TodolistContractInstance.numTodos();
-
-    for (let i = 0; i < todosCount; i++) {
-      const todo = await TodolistContractInstance.todos(i);
-      console.log(todo, i);
-      if (!todo.removed)
-        this.setState({ todos: [...this.state.todos, { ...todo, id: i }] });
-    }
+    this.setState({ web3, accounts, TodolistContractInstance });
 
     TodolistContractInstance.added().on("data", async e => {
       const newLen = await TodolistContractInstance.numTodos();
@@ -47,17 +38,33 @@ export class TodoList extends Component {
         )
       });
     });
+
+    await this.getTodos();
+  };
+
+  getTodos = async () => {
+    const { TodolistContractInstance } = this.state;
+    const todosCount = await TodolistContractInstance.numTodos();
+
+    for (let i = 0; i < todosCount; i++) {
+      const todo = await TodolistContractInstance.todos(i);
+      console.log(todo, i);
+      if (!todo.removed)
+        this.setState({ todos: [...this.state.todos, { ...todo, id: i }] });
+    }
   };
 
   addTodo = async () => {
-    const { todoContract, accounts } = this.state;
-    await todoContract.addTodo(this.state.newTodo, { from: accounts[0] });
+    const { TodolistContractInstance, accounts } = this.state;
+    await TodolistContractInstance.addTodo(this.state.newTodo, {
+      from: accounts[0]
+    });
   };
 
   removeTodo = async id => {
-    const { todoContract, accounts, web3 } = this.state;
+    const { TodolistContractInstance, accounts, web3 } = this.state;
     console.log("RM TODO", id);
-    await todoContract.removeTodo(web3.utils.numberToHex(id), {
+    await TodolistContractInstance.removeTodo(web3.utils.numberToHex(id), {
       from: accounts[0]
     });
   };
