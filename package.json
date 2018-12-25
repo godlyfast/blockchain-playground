@@ -17,7 +17,7 @@
     "start": "truffle migrate && cd client && npm start",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "cd client && npm i && cd ..",
-    "deploy": "truffle migrate --network ropsten && truffle migrate --network kovan && truffle migrate --network rinkeby && cd client && npm run build --output-public-path='/blockchain-playground/' && gh-pages -d build && cd .."
+    "deploy": "truffle migrate --network ropsten && truffle migrate --network kovan && truffle migrate --network rinkeby && cd client && npm run build && gh-pages -d build && cd .."
   },
   "repository": {
     "type": "git",
