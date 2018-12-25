@@ -8,7 +8,8 @@ export class TodoList extends Component {
     accounts: null,
     todos: [],
     todoContract: null,
-    newTodo: null
+    newTodo: null,
+    err: null
   };
 
   componentDidMount = async () => {
@@ -17,29 +18,33 @@ export class TodoList extends Component {
 
     const TodolistContract_ = truffleContract(TodolistContract);
     TodolistContract_.setProvider(web3.currentProvider);
-    const TodolistContractInstance = await TodolistContract_.deployed();
+    try {
+      const TodolistContractInstance = await TodolistContract_.deployed();
 
-    this.setState({ web3, accounts, TodolistContractInstance });
+      this.setState({ web3, accounts, TodolistContractInstance });
 
-    TodolistContractInstance.added().on("data", async e => {
-      const newLen = await TodolistContractInstance.numTodos();
-      this.setState({
-        todos: [
-          ...this.state.todos,
-          { text: e.returnValues.text, id: newLen.toNumber() - 1 }
-        ]
+      TodolistContractInstance.added().on("data", async e => {
+        const newLen = await TodolistContractInstance.numTodos();
+        this.setState({
+          todos: [
+            ...this.state.todos,
+            { text: e.returnValues.text, id: newLen.toNumber() - 1 }
+          ]
+        });
       });
-    });
 
-    TodolistContractInstance.removed().on("data", async e => {
-      this.setState({
-        todos: this.state.todos.filter(
-          todo => todo.id !== e.returnValues.id * 1
-        )
+      TodolistContractInstance.removed().on("data", async e => {
+        this.setState({
+          todos: this.state.todos.filter(
+            todo => todo.id !== e.returnValues.id * 1
+          )
+        });
       });
-    });
 
-    await this.getTodos();
+      await this.getTodos();
+    } catch (err) {
+      this.setState({ err });
+    }
   };
 
   getTodos = async () => {
@@ -63,24 +68,30 @@ export class TodoList extends Component {
 
   removeTodo = async id => {
     const { TodolistContractInstance, accounts, web3 } = this.state;
-    console.log("RM TODO", id);
     await TodolistContractInstance.removeTodo(web3.utils.numberToHex(id), {
       from: accounts[0]
     });
   };
 
   render() {
+    const { err, todos } = this.state;
     return (
       <div>
         <h3>TODOS!!!</h3>
-        {this.state.todos.map((todo, i) => (
-          <div key={i}>
-            {todo.text} | {todo.id}
-            <button onClick={() => this.removeTodo(todo.id)}>x</button>
+        {err ? (
+          err.message
+        ) : (
+          <div>
+            {todos.map((todo, i) => (
+              <div key={i}>
+                {todo.text} | {todo.id}
+                <button onClick={() => this.removeTodo(todo.id)}>x</button>
+              </div>
+            ))}
+            <input onChange={e => this.setState({ newTodo: e.target.value })} />
+            <button onClick={this.addTodo}>ADD</button>
           </div>
-        ))}
-        <input onChange={e => this.setState({ newTodo: e.target.value })} />
-        <button onClick={this.addTodo}>ADD</button>
+        )}
       </div>
     );
   }
