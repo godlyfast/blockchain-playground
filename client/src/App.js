@@ -9,7 +9,8 @@ import SimpleStorage from "./components/SimpleStorage";
 class App extends Component {
   state = {
     web3: null,
-    accounts: null
+    accounts: null,
+    err: null
   };
 
   componentDidMount = async () => {
@@ -28,17 +29,18 @@ class App extends Component {
       });
     } catch (error) {
       // Catch any errors for any of the above operations.
-      alert(
-        `Failed to load web3, accounts, or contract. Check console for details.`
-      );
+      this.setState({err: error});
       console.log(error);
     }
   };
 
   render() {
-    const { web3, accounts } = this.state;
+    const { web3, accounts, err } = this.state;
+    if (err) {
+      return <div>OH NO! There was an Error while trying communicate to blockchain <br /> ERR MESSAGE: "{err.message}" <br /> Please ensure you have metamask plugin installed and enabled <br /> If you don't have one you cat install it <a href="https://metamask.io/">here</a></div>
+    }
     if (!web3) {
-      return <div>Loading Web3, accounts, and contract...</div>;
+      return <div>Loading Web3, accounts, and contracts...</div>;
     }
     return (
       <div className="App">
